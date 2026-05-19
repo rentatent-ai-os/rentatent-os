@@ -1,0 +1,413 @@
+
+<!DOCTYPE html>
+<html lang="lt">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rentatent OS</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Fraunces:wght@300;600&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Helvetica Neue',Arial,sans-serif;background:#f2f0e8;color:#1e1c17;min-height:100vh}
+::-webkit-scrollbar{width:4px}::-webkit-scrollbar-thumb{background:#d0ccbc;border-radius:2px}
+.header{background:#fff;border-bottom:1px solid #d0ccbc;box-shadow:0 1px 4px rgba(0,0,0,.06);position:sticky;top:0;z-index:100}
+.header-inner{max-width:1200px;margin:0 auto;padding:0 20px}
+.logo-row{display:flex;align-items:center;justify-content:space-between;padding:14px 0 0}
+.logo{font-family:'Fraunces',serif;font-weight:600;font-size:20px;color:#798645}
+.version{font-family:'DM Mono',monospace;font-size:10px;color:#7a7464;letter-spacing:.15em;margin-left:12px}
+.sync-badge{font-family:'DM Mono',monospace;font-size:9px;color:#16a34a;margin-left:8px}
+.header-actions{display:flex;gap:8px;align-items:center;padding-bottom:14px}
+.tabs{display:flex;overflow-x:auto;gap:0}
+.tab{background:none;border:none;cursor:pointer;padding:11px 16px;font-family:'DM Mono',monospace;font-size:11px;color:#7a7464;border-bottom:2px solid transparent;transition:all .15s;white-space:nowrap;letter-spacing:.04em}
+.tab.on{color:#798645;border-bottom-color:#798645}
+.tab:hover:not(.on){color:#1e1c17}
+.main{max-width:1200px;margin:0 auto;padding:22px 20px}
+.btn{padding:7px 16px;border-radius:4px;border:none;cursor:pointer;font-family:'DM Mono',monospace;font-size:11px;transition:all .15s;letter-spacing:.03em}
+.btn-p{background:#798645;color:#fff}.btn-p:hover{background:#5a6332}
+.btn-g{background:transparent;color:#7a7464;border:1px solid #d0ccbc}.btn-g:hover{background:#eceae0}
+.btn-sm{padding:4px 10px;font-size:10px}
+.card{background:#fff;border:1px solid #d0ccbc;border-radius:8px;padding:16px;margin-bottom:10px}
+.stat-card{background:#fff;border:1px solid #d0ccbc;border-radius:8px;padding:18px;flex:1;min-width:130px}
+.lbl{font-size:10px;color:#7a7464;text-transform:uppercase;letter-spacing:.1em;font-family:'DM Mono',monospace}
+.badge{display:inline-block;padding:2px 8px;border-radius:3px;font-size:9px;font-family:'DM Mono',monospace;font-weight:500;text-transform:uppercase;letter-spacing:.07em}
+.row-item{display:flex;gap:12px;padding:12px 14px;background:#fff;border:1px solid #d0ccbc;border-radius:6px;margin-bottom:7px;border-left:3px solid #d0ccbc;cursor:pointer;transition:border-left-color .15s;align-items:flex-start}
+.row-item:hover{border-left-color:#798645}
+.inp{background:#fff;border:1px solid #d0ccbc;border-radius:4px;padding:7px 11px;color:#1e1c17;font-family:'DM Mono',monospace;font-size:12px;width:100%;transition:border-color .2s}
+.inp:focus{border-color:#798645;outline:none}
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;z-index:200;backdrop-filter:blur(5px)}
+.modal{background:#fff;border:1px solid #d0ccbc;border-radius:10px;padding:26px;width:480px;max-width:95vw;box-shadow:0 20px 60px rgba(0,0,0,.12)}
+.agent-b{padding:12px 15px;border-radius:8px;max-width:88%;font-size:12px;line-height:1.75;white-space:pre-wrap;font-family:'DM Mono',monospace}
+.agent-u{background:#f0f2e8;border:1px solid #c8d4a0;align-self:flex-end}
+.agent-a{background:#fff;border:1px solid #d0ccbc;align-self:flex-start}
+.day-cell{min-height:78px;padding:5px;border:1px solid #d0ccbc;background:#fff;cursor:pointer;transition:background .1s;vertical-align:top}
+.day-cell:hover{background:#f7f5ee}
+.day-cell.sel{background:#f0f2e8;border-color:#798645}
+.day-cell.empty{background:#eceae0}
+.pill{padding:2px 5px;border-radius:3px;font-size:9px;font-family:'DM Mono',monospace;display:block;margin-bottom:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.wchip{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:20px;font-size:11px;font-family:'DM Mono',monospace;border:1px solid;cursor:pointer;transition:all .15s;margin:3px}
+.detail-row{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #d0ccbc;font-size:13px}
+.detail-row:last-child{border:none}
+.pulse{animation:pulse 1.4s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+.danger-badge{background:#fef2f2;border:1px solid #fca5a5;border-radius:4px;padding:3px 10px;color:#dc2626;font-size:10px;font-family:'DM Mono',monospace}
+.nav-btn{background:#fff;border:1px solid #d0ccbc;color:#7a7464;width:30px;height:30px;border-radius:4px;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;transition:all .15s}
+.nav-btn:hover{border-color:#798645;color:#798645}
+</style>
+</head>
+<body>
+
+<div id="app"></div>
+
+<script type="module">
+const API_URL = "https://script.google.com/macros/s/AKfycbwqMzZKBK1nEHHUmadZiaJM1gOcxT6faM9fZaswMWcMAA0igM4PCcv9707fF4qAw1hujg/exec";
+const TOKEN = "RENTATENT_GAUTAMA100";
+
+const api = async (action, params={}) => {
+  const qs = new URLSearchParams({action, token:TOKEN, ...params}).toString();
+  const r = await fetch(`${API_URL}?${qs}`);
+  return r.json();
+};
+const apiPost = async (action, data) => {
+  const r = await fetch(API_URL, {method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({action,token:TOKEN,...data})});
+  return r.json();
+};
+
+const C = {
+  accent:"#798645",accentDk:"#5a6332",accentLt:"#f0f2e8",
+  blue:"#2563eb",danger:"#dc2626",warn:"#d97706",ok:"#16a34a",
+  muted:"#7a7464",border:"#d0ccbc",bg3:"#eceae0",text:"#1e1c17"
+};
+
+const STATUS_META = {
+  NEW:        {color:C.accent, bg:C.accentLt,  border:C.accent,   label:"Nauja"},
+  OFFER_SENT: {color:C.blue,   bg:"#eff6ff",   border:"#93c5fd",  label:"Pasiūlyta"},
+  CONFIRMED:  {color:C.ok,     bg:"#f0fdf4",   border:"#86efac",  label:"Patvirtinta"},
+  IN_PROGRESS:{color:C.warn,   bg:"#fffbeb",   border:"#fcd34d",  label:"Vyksta"},
+  COMPLETED:  {color:"#64748b",bg:"#f8fafc",   border:"#cbd5e1",  label:"Atlikta"},
+  CANCELLED:  {color:C.danger, bg:"#fef2f2",   border:"#fca5a5",  label:"Atšaukta"},
+};
+
+const MONTHS = ["Sausis","Vasaris","Kovas","Balandis","Gegužė","Birželis","Liepa","Rugpjūtis","Rugsėjis","Spalis","Lapkritis","Gruodis"];
+const DAYS = ["Pr","An","Tr","Kt","Pn","Št","Sk"];
+const TODAY = new Date();
+const fmt = d => d.toISOString().slice(0,10);
+
+const mapOrder = r => ({
+  id: r.OrderID||"", title: r.Title||"", client: r.ClientName||"",
+  company: r.CompanyName||"", phone: r.ClientPhone||"", email: r.ClientEmail||"",
+  status: r.Status||"NEW", priority: r.Priority||"MED",
+  date: r.Date||"", demDate: r.DemDate||"",
+  address: r.Address||"", mapsLink: r.MapsLink||"",
+  equipment: r.Equipment||"", notes: r.Notes||"",
+  total: parseFloat(r.Total)||0, advance: parseFloat(r.Advance)||0,
+  workers: r.WorkersAssigned ? r.WorkersAssigned.toString().split(",").map(Number).filter(Boolean) : [],
+  followUp1: r.FollowUp1Sent==="TRUE"||r.FollowUp1Sent===true,
+  weatherRisk: r.WeatherRisk==="TRUE"||r.WeatherRisk===true,
+  archived: r.Archived==="TRUE"||r.Archived===true,
+});
+const mapTask = r => ({
+  id: r.TaskID||r.id||Math.random(), text: r.Text||"",
+  priority: r.Priority||"MED", deadline: r.Deadline||"",
+  orderId: r.OrderID||"", type: r.Type||"GENERAL",
+  done: r.Done==="TRUE"||r.Done===true,
+});
+const mapWorker = r => ({
+  id: parseInt((r.WorkerID||"").replace("W",""))||Math.random(),
+  name: r.Name||"", email: r.Email||"", role: r.Role||"",
+});
+
+// ─── STATE ───────────────────────────────────────────────────────────────────
+let state = {
+  tab:"dashboard", orders:[], tasks:[], workers:[], skolos:[],
+  loading:true, syncing:false, lastSync:null,
+  selOrder:null, selDay:null,
+  viewMonth:TODAY.getMonth(), viewYear:TODAY.getFullYear(),
+  emailPreview:null, emailType:"OFFER",
+  workerModal:null, newOrderModal:false, newOrderText:"",
+  parsing:false, search:"",
+  agentMsgs:[{role:"assistant",text:"⚡ Rentatent AI OS — prijungta prie Google Sheets.\n\nPvz: \"Jonas skambino, vestuvės liepos 12, Trakai, 80 žm\"\nArba: \"Daily plan šiandien\""}],
+  agentInput:"", agentLoading:false,
+};
+
+const setState = (updates) => { state = {...state,...updates}; render(); };
+
+// ─── DATA LOAD ───────────────────────────────────────────────────────────────
+async function loadData() {
+  setState({syncing:true});
+  try {
+    const [oR,tR,wR,sR] = await Promise.all([api("getOrders"),api("getTasks"),api("getWorkers"),api("getSkolos")]);
+    setState({
+      orders: oR.status==="ok" ? oR.data.map(mapOrder) : state.orders,
+      tasks:  tR.status==="ok" ? tR.data.map(mapTask)  : state.tasks,
+      workers:wR.status==="ok" ? wR.data.map(mapWorker): state.workers,
+      skolos: sR.status==="ok" ? sR.data : state.skolos,
+      loading:false, syncing:false, lastSync:new Date(),
+    });
+  } catch(e) {
+    console.error(e);
+    setState({loading:false, syncing:false});
+  }
+}
+
+async function toggleTask(id) {
+  const t = state.tasks.find(x=>x.id===id);
+  if(!t) return;
+  setState({tasks: state.tasks.map(x=>x.id===id?{...x,done:!x.done}:x)});
+  await apiPost("updateTask",{taskId:t.id, data:{Done:!t.done?"TRUE":"FALSE"}});
+}
+
+async function assignWorker(orderId, wId) {
+  const o = state.orders.find(x=>x.id===orderId);
+  if(!o) return;
+  const newW = o.workers.includes(wId) ? o.workers.filter(w=>w!==wId) : [...o.workers,wId];
+  setState({orders: state.orders.map(x=>x.id===orderId?{...x,workers:newW}:x)});
+  await apiPost("updateOrder",{orderId, data:{WorkersAssigned:newW.join(",")}});
+}
+
+async function parseOrder() {
+  if(!state.newOrderText.trim()) return;
+  setState({parsing:true});
+  try {
+    const r = await fetch("https://api.anthropic.com/v1/messages",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({model:"claude-sonnet-4-20250514",max_tokens:600,messages:[{role:"user",content:`Iš teksto ištrauk užsakymą. Grąžink TIKTAI JSON be markdown:\n"${state.newOrderText}"\n\n{"title":"","client":"","phone":"","email":"","status":"NEW","priority":"MED","date":"YYYY-MM-DD","demDate":"YYYY-MM-DD","address":"","equipment":"","total":0,"notes":""}`}]})});
+    const d = await r.json();
+    const p = JSON.parse(d.content?.[0]?.text?.replace(/```json|```/g,"").trim()||"{}");
+    await apiPost("createOrder",{data:{Title:p.title,ClientName:p.client,ClientPhone:p.phone,ClientEmail:p.email,Status:"NEW",Priority:p.priority||"MED",Date:p.date,DemDate:p.demDate,Address:p.address,Equipment:p.equipment,Total:p.total||0,Notes:p.notes,MapsLink:`https://maps.google.com/?q=${encodeURIComponent(p.address||"")}`,Source:"AI Parse"}});
+    await loadData();
+    setState({newOrderModal:false,newOrderText:"",parsing:false,tab:"orders"});
+  } catch(e) { alert("Klaida: "+e.message); setState({parsing:false}); }
+}
+
+async function sendAgent() {
+  if(!state.agentInput.trim()||state.agentLoading) return;
+  const msg = state.agentInput.trim();
+  const msgs = [...state.agentMsgs,{role:"user",text:msg}];
+  setState({agentMsgs:msgs, agentInput:"", agentLoading:true});
+  const active = state.orders.filter(o=>!o.archived);
+  const sys = `Tu esi Rentatent.lt AI vadybininkas. Palapinių/paviljonų nuoma Lietuvoje.
+UŽSAKYMAI: ${JSON.stringify(active.map(o=>({id:o.id,title:o.title,client:o.client,status:o.status,date:o.date,total:o.total,remaining:o.total-o.advance})))}
+UŽDUOTYS: ${JSON.stringify(state.tasks.filter(t=>!t.done).slice(0,10))}
+Stilius: trumpas, versliškas, lietuviškai.`;
+  try {
+    const r = await fetch("https://api.anthropic.com/v1/messages",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({model:"claude-sonnet-4-20250514",max_tokens:1000,system:sys,messages:[...msgs.slice(-6).map(m=>({role:m.role,content:m.text})),{role:"user",content:msg}]})});
+    const d = await r.json();
+    setState({agentMsgs:[...msgs,{role:"assistant",text:d.content?.[0]?.text||"Klaida."}], agentLoading:false});
+  } catch { setState({agentMsgs:[...msgs,{role:"assistant",text:"Ryšio klaida."}], agentLoading:false}); }
+}
+
+// ─── EMAIL HTML ───────────────────────────────────────────────────────────────
+function emailHTML(type,o) {
+  const head=`<div style="background:#798645;padding:28px 36px"><h1 style="color:#fff;margin:0;font-size:20px;font-weight:300;letter-spacing:2px">RENTATENT.LT</h1><p style="color:rgba(255,255,255,0.6);margin:4px 0 0;font-size:11px">Palapinių ir paviljonų nuoma</p></div>`;
+  const foot=`<div style="background:#1a1a1a;padding:20px 36px;text-align:center"><p style="color:#888;font-size:11px">rentatent.lt · +370 600 XXXXX · info@rentatent.lt</p></div>`;
+  const wrap=b=>`<!DOCTYPE html><html><body style="font-family:Arial,sans-serif;background:#f4f2ec;margin:0"><div style="max-width:580px;margin:0 auto;background:#fff">${head}<div style="padding:36px">${b}</div>${foot}</div></body></html>`;
+  const row=(k,v)=>`<div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid #eee;font-size:13px"><span style="color:#888">${k}</span><span style="font-weight:500">${v}</span></div>`;
+  const box=r=>`<div style="background:#f9f9f5;border-left:4px solid #798645;padding:16px 20px;margin:20px 0">${r}</div>`;
+  const cta=t=>`<a href="#" style="display:block;background:#798645;color:#fff;text-decoration:none;padding:13px 28px;border-radius:5px;text-align:center;margin:24px 0;font-size:13px">${t}</a>`;
+  if(type==="OFFER") return wrap(`<p style="font-size:14px;color:#333;line-height:1.7">Laba diena,<br><br>Pateikiame pasiūlymą:</p>${box(row("Renginys",o?.title||"—")+row("Data",o?.date||"—")+row("Vieta",o?.address||"—")+row("Įranga",o?.equipment||"—")+row("Suma",o?.total?(o.total.toLocaleString()+" €"):"Pagal susitarimą"))}${cta("✓ Patvirtinti")}`);
+  if(type==="FOLLOW_UP") return wrap(`<p style="font-size:14px;color:#333;line-height:1.7">Laba diena,<br><br>Norėjome pasiteirauti dėl pasiūlymo <strong>${o?.id||""}</strong>.<br><br>Ar turite klausimų?</p><p style="font-size:13px;color:#555;margin-top:24px">Pagarbiai,<br><strong>Rentatent.lt</strong></p>`);
+  if(type==="REMINDER") return wrap(`<p style="font-size:14px;color:#333;line-height:1.7">Laba diena,<br><br>Priminimas dėl montavimo:</p><div style="background:#fff8e6;border:1px solid #f59e0b;border-radius:6px;padding:16px;margin:16px 0"><p style="margin:0;font-size:13px">📅 <strong>${o?.date||"—"}</strong><br>📍 ${o?.address||"—"}<br>📦 ${o?.equipment||"—"}</p></div>${cta("Patvirtinti")}`);
+  if(type==="THANK_YOU") return wrap(`<p style="font-size:14px;color:#333;line-height:1.7">Laba diena,<br><br>Dėkojame, kad pasirinkote Rentatent.lt!</p><div style="text-align:center;padding:20px;margin:20px 0;background:#f9f9f5"><div style="font-size:28px">⭐⭐⭐⭐⭐</div></div>${cta("Palikite atsiliepimą →")}`);
+  return wrap("<p>Laiškas</p>");
+}
+
+// ─── RENDER ───────────────────────────────────────────────────────────────────
+function render() {
+  const app = document.getElementById("app");
+  const s = state;
+  const active = s.orders.filter(o=>!o.archived);
+  const archived = s.orders.filter(o=>o.archived);
+  const urgent = s.tasks.filter(t=>!t.done&&t.priority==="HIGH");
+  const noResp = active.filter(o=>o.status==="OFFER_SENT"&&!o.followUp1);
+  const unpaid = active.filter(o=>o.status==="CONFIRMED").reduce((a,o)=>a+(o.total-o.advance),0);
+
+  if(s.loading) {
+    app.innerHTML=`<div style="display:flex;align-items:center;justify-content:center;height:100vh;background:#f2f0e8;flex-direction:column;gap:16px"><div style="font-family:'Fraunces',serif;font-size:24px;color:#798645">RENTATENT</div><div style="font-family:'DM Mono',monospace;font-size:12px;color:#7a7464;" class="pulse">Kraunama iš Google Sheets...</div></div>`;
+    return;
+  }
+
+  const tabs = [{id:"dashboard",icon:"⚡",label:"Dashboard"},{id:"calendar",icon:"📅",label:"Kalendorius"},{id:"orders",icon:"📦",label:"Užsakymai"},{id:"clients",icon:"👤",label:"Klientai"},{id:"tasks",icon:"✅",label:"Užduotys"},{id:"assign",icon:"👷",label:"Komanda"},{id:"emails",icon:"✉️",label:"Laiškai"},{id:"agent",icon:"🤖",label:"AI Agentas"}];
+
+  // Calendar helpers
+  const firstDay = new Date(s.viewYear, s.viewMonth, 1);
+  const startDow = (firstDay.getDay()+6)%7;
+  const daysInMo = new Date(s.viewYear, s.viewMonth+1, 0).getDate();
+  const cells = [...Array(startDow).fill(null), ...Array.from({length:daysInMo},(_,i)=>i+1)];
+  while(cells.length%7) cells.push(null);
+  const iso = d => d?`${s.viewYear}-${String(s.viewMonth+1).padStart(2,"0")}-${String(d).padStart(2,"0")}`:"";
+  const isToday = d => d&&iso(d)===fmt(TODAY);
+  const eventsOn = isoDate => {
+    const evs=[];
+    active.forEach(o=>{
+      if(o.date===isoDate) evs.push({...o,evType:"INSTALL"});
+      if(o.demDate===isoDate) evs.push({...o,evType:"DISMANTLE"});
+    });
+    return evs;
+  };
+
+  // Client DB
+  const clientMap = {};
+  s.orders.forEach(o=>{
+    const k=o.phone||o.email; if(!k) return;
+    if(!clientMap[k]) clientMap[k]={name:o.client,company:o.company,phone:o.phone,email:o.email,orders:[],totalValue:0};
+    clientMap[k].orders.push(o); clientMap[k].totalValue+=o.total;
+  });
+  const clients = Object.values(clientMap).filter(c=>!s.search||c.name.toLowerCase().includes(s.search.toLowerCase())||(c.phone||"").includes(s.search));
+
+  let tabContent = "";
+
+  if(s.tab==="dashboard") {
+    const statsHtml = [{label:"Laukiama mokėjimų",val:`${unpaid.toLocaleString()} €`,col:C.accent},{label:"Aktyvūs užsakymai",val:active.filter(o=>["CONFIRMED","OFFER_SENT","IN_PROGRESS"].includes(o.status)).length,col:C.blue},{label:"Skubios užduotys",val:urgent.length,col:C.danger},{label:"Be atsakymo",val:noResp.length,col:C.warn}]
+      .map(x=>`<div class="stat-card"><div class="lbl" style="margin-bottom:6px">${x.label}</div><div style="font-size:28px;font-family:'Fraunces',serif;font-weight:600;color:${x.col}">${x.val}</div></div>`).join("");
+    const urgentHtml = urgent.map(t=>`<div class="card" style="border-left:3px solid ${C.danger};cursor:pointer;padding:12px 14px" onclick="toggleTask('${t.id}')"><div style="display:flex;justify-content:space-between;align-items:center"><div style="display:flex;gap:8px;align-items:center"><span style="color:${t.done?C.ok:C.danger};font-size:13px">${t.done?"✓":"□"}</span><span style="font-size:13px;text-decoration:${t.done?"line-through":"none"}">${t.text}</span><span class="badge" style="background:#eceae0;color:#7a7464;border:1px solid #d0ccbc">${t.type}</span></div><span style="font-size:11px;color:#7a7464;font-family:'DM Mono',monospace">${t.deadline}</span></div></div>`).join("");
+    const noRespHtml = noResp.map(o=>`<div class="card" style="cursor:pointer;padding:12px 14px" onclick="setTab('orders');selOrder('${o.id}')"><div style="font-size:13px;font-weight:500">${o.client}</div><div style="font-size:11px;color:#7a7464;margin-top:3px">${o.title||""} · ${o.date}</div><button class="btn btn-g btn-sm" style="margin-top:8px" onclick="event.stopPropagation();showFollowUp('${o.id}')">Follow-up →</button></div>`).join("");
+    tabContent=`<div style="font-family:'Fraunces',serif;font-size:24px;font-weight:300;margin-bottom:20px">${TODAY.toLocaleDateString("lt-LT",{weekday:"long",year:"numeric",month:"long",day:"numeric"})}</div><div style="display:flex;gap:12px;margin-bottom:20px;flex-wrap:wrap">${statsHtml}</div><div style="display:flex;gap:16px;flex-wrap:wrap"><div style="flex:2;min-width:280px"><div class="lbl" style="margin-bottom:10px">⚡ Veiksmai dabar</div>${urgentHtml||'<div style="font-size:12px;color:#7a7464;padding:10px 0">Nėra skubių užduočių ✓</div>'}</div><div style="flex:1;min-width:220px"><div class="lbl" style="margin-bottom:10px">📨 Laukia atsakymo</div>${noRespHtml||'<div style="font-size:12px;color:#7a7464;padding:10px 0">Visi atsakė ✓</div>'}</div></div>`;
+  }
+
+  else if(s.tab==="calendar") {
+    const calRows = Array.from({length:cells.length/7},(_,ri)=>{
+      const rowCells = cells.slice(ri*7,ri*7+7).map((d,ci)=>{
+        const dayIso=iso(d); const evs=d?eventsOn(dayIso):[];
+        const inst=evs.filter(e=>e.evType==="INSTALL"); const dem=evs.filter(e=>e.evType==="DISMANTLE");
+        const isSel=dayIso===s.selDay;
+        const cls=`day-cell${!d?" empty":""}${isSel?" sel":""}`;
+        const pills=inst.map(e=>`<span class="pill" style="background:#f0f2e8;color:#798645">▲ ${e.client.split(" ")[0]}</span>`).join("")+dem.map(e=>`<span class="pill" style="background:#fdf3e8;color:#b87333">▼ ${e.client.split(" ")[0]}</span>`).join("");
+        return `<td class="${cls}" onclick="selectDay('${dayIso}')">${d?`<div style="font-size:11px;font-family:'DM Mono',monospace;color:${isToday(d)?C.accent:"#7a7464"};font-weight:${isToday(d)?700:400};margin-bottom:3px">${d}</div>${pills}`:""}</td>`;
+      }).join("");
+      return `<tr>${rowCells}</tr>`;
+    }).join("");
+    const selEvs = s.selDay ? [...new Map(eventsOn(s.selDay).map(e=>[e.id,e])).values()] : [];
+    const selHtml = selEvs.length>0 ? selEvs.map(o=>{
+      const sm=STATUS_META[o.status]||STATUS_META.NEW;
+      return `<div class="card" style="border-left:4px solid ${o.date===s.selDay?"#798645":"#b87333"}"><div style="font-family:'Fraunces',serif;font-size:17px;font-weight:600;margin-bottom:8px">${o.title||o.client}</div><div style="font-size:14px;font-weight:600">${o.client}</div><a href="tel:${o.phone}" style="color:#2563eb;font-size:13px;font-family:'DM Mono',monospace">📞 ${o.phone}</a><div style="font-size:12px;color:#7a7464;margin-top:6px">📍 ${o.address}</div>${o.mapsLink?`<a href="${o.mapsLink}" target="_blank" style="color:#2563eb;font-size:12px">🗺 Google Maps →</a>`:""}<div style="margin-top:10px;font-size:12px;background:#eceae0;padding:8px;border-radius:4px">${o.equipment||"—"}</div>${o.notes?`<div style="background:#fffbeb;border:1px solid #fcd34d;border-radius:4px;padding:8px;font-size:12px;margin-top:8px">⚠ ${o.notes}</div>`:""}</div>`;
+    }).join("") : active.filter(o=>o.date>=fmt(TODAY)).sort((a,b)=>a.date.localeCompare(b.date)).map(o=>{
+      const sm=STATUS_META[o.status]||STATUS_META.NEW; const days=Math.ceil((new Date(o.date)-TODAY)/86400000);
+      return `<div class="row-item" style="border-left-color:${sm.border}" onclick="goToDay('${o.date}')"><div style="flex:1"><div style="display:flex;gap:7px;margin-bottom:4px"><span class="badge" style="background:${sm.bg};color:${sm.color};border:1px solid ${sm.border}">${sm.label}</span><span style="font-family:'DM Mono',monospace;font-size:10px;color:${days<=7?C.danger:days<=14?C.warn:"#7a7464"}">${days===0?"ŠIANDIEN":days===1?"RYTOJ":`po ${days}d.`}</span></div><div style="font-size:13px;font-weight:500">${o.title||o.client}</div><div style="font-size:11px;color:#7a7464;font-family:'DM Mono',monospace">▲ ${o.date} · ▼ ${o.demDate}</div></div>${o.total>0?`<div style="font-family:'Fraunces',serif;font-size:15px;color:#798645">${o.total.toLocaleString()} €</div>`:""}</div>`;
+    }).join("")||'<div style="font-size:12px;color:#7a7464">Nėra artėjančių</div>';
+    tabContent=`<div style="display:flex;gap:20px;flex-wrap:wrap"><div style="flex:0 0 560px;min-width:320px"><div style="display:flex;align-items:center;gap:12px;margin-bottom:12px"><button class="nav-btn" onclick="prevMonth()">‹</button><div style="font-family:'Fraunces',serif;font-size:22px;font-weight:300;flex:1;text-align:center">${MONTHS[s.viewMonth]} <span style="color:#7a7464">${s.viewYear}</span></div><button class="nav-btn" onclick="nextMonth()">›</button></div><table style="width:100%;border-collapse:collapse"><thead><tr>${DAYS.map(d=>`<th style="padding:5px 0;text-align:center;font-size:10px;color:#7a7464;font-family:'DM Mono',monospace;font-weight:400">${d}</th>`).join("")}</tr></thead><tbody>${calRows}</tbody></table><div style="background:#eceae0;border:1px solid #d0ccbc;border-radius:5px;padding:10px 14px;margin-top:12px;font-size:12px;color:#7a7464">📁 Archyve: <strong>${archived.length}</strong> · Aktyvūs: <strong>${active.length}</strong></div></div><div style="flex:1;min-width:280px"><div class="lbl" style="margin-bottom:12px">${s.selDay?new Date(s.selDay+"T12:00:00").toLocaleDateString("lt-LT",{weekday:"long",month:"long",day:"numeric"}):"📅 Artėjantys"}</div>${selHtml}</div></div>`;
+  }
+
+  else if(s.tab==="orders" && !s.selOrder) {
+    const rows = active.sort((a,b)=>a.date.localeCompare(b.date)).map(o=>{
+      const sm=STATUS_META[o.status]||STATUS_META.NEW;
+      return `<div class="row-item" style="border-left-color:${sm.border}" onclick="openOrder('${o.id}')"><div style="flex:1"><div style="display:flex;gap:7px;align-items:center;margin-bottom:5px;flex-wrap:wrap"><span style="font-family:'DM Mono',monospace;font-size:10px;color:#7a7464">${o.id}</span><span class="badge" style="background:${sm.bg};color:${sm.color};border:1px solid ${sm.border}">${sm.label}</span>${o.weatherRisk?'<span style="background:#fff7ed;border:1px solid #fdba74;border-radius:3px;padding:1px 6px;font-size:9px;color:#d97706">⚡ WEATHER</span>':""}</div><div style="font-size:14px;font-weight:500">${o.title||o.client}</div><div style="font-size:12px;color:#7a7464;margin-top:3px">${o.client}${o.company?` · ${o.company}`:""} · ${o.date}</div></div><div style="text-align:right">${o.total>0?`<div style="font-family:'Fraunces',serif;font-size:17px;color:#798645">${o.total.toLocaleString()} €</div>`:""}${o.total-o.advance>0?`<div style="font-size:10px;color:#7a7464;font-family:'DM Mono',monospace">likusios: ${(o.total-o.advance).toLocaleString()} €</div>`:""}</div></div>`;
+    }).join("")||'<div style="font-size:13px;color:#7a7464;padding:20px 0">Nėra aktyvių užsakymų</div>';
+    tabContent=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px"><div style="font-family:'Fraunces',serif;font-size:22px;font-weight:300">Užsakymai <span style="font-size:14px;color:#7a7464">(${active.length})</span></div><button class="btn btn-p btn-sm" onclick="openNewOrder()">+ Naujas</button></div>${rows}`;
+  }
+
+  else if(s.tab==="orders" && s.selOrder) {
+    const o=s.selOrder; const sm=STATUS_META[o.status]||STATUS_META.NEW;
+    const rows=[["Klientas",o.client+(o.company?` (${o.company})`:"")||"—"],["Telefonas",o.phone||"—"],["El. paštas",o.email||"—"],["Data",o.date||"—"],["Dem. data",o.demDate||"—"],["Adresas",o.address||"—"],["Įranga",o.equipment||"—"],["Suma",`${o.total.toLocaleString()} €`],["Apmokėta",`${o.advance.toLocaleString()} €`],["Likusios",`${(o.total-o.advance).toLocaleString()} €`]].map(([k,v])=>`<div class="detail-row"><span class="lbl">${k}</span><span style="max-width:60%;text-align:right;font-size:13px">${v}</span></div>`).join("");
+    tabContent=`<button class="btn btn-g btn-sm" style="margin-bottom:16px" onclick="closeOrder()">← Visi</button><div style="display:flex;gap:16px;flex-wrap:wrap"><div style="flex:2;min-width:260px"><div style="font-family:'Fraunces',serif;font-size:22px;font-weight:300;margin-bottom:2px">${o.title||o.client}</div><div style="font-family:'DM Mono',monospace;font-size:11px;color:#7a7464;margin-bottom:16px">${o.id}</div><div class="card">${rows}</div></div><div style="flex:1;min-width:200px"><div class="lbl" style="margin-bottom:10px">Generuoti laišką</div><div style="display:flex;flex-direction:column;gap:7px">${[["OFFER","📧 Pasiūlymas"],["REMINDER","🔔 Priminimas"],["FOLLOW_UP","↩ Follow-up"],["THANK_YOU","🙏 Ačiū"]].map(([t,l])=>`<button class="btn btn-g" style="width:100%;text-align:left" onclick="previewEmail('${t}','${o.id}')">${l}</button>`).join("")}</div>${o.notes?`<div style="background:#fffbeb;border:1px solid #fcd34d;border-radius:5px;padding:10px 12px;font-size:12px;margin-top:14px">⚠ ${o.notes}</div>`:""}</div></div>`;
+  }
+
+  else if(s.tab==="clients") {
+    const rows = clients.map(c=>{
+      const last=[...c.orders].sort((a,b)=>b.date.localeCompare(a.date))[0];
+      return `<div class="card"><div style="display:flex;justify-content:space-between;align-items:flex-start"><div style="flex:1"><div style="display:flex;gap:8px;align-items:center;margin-bottom:6px"><span style="font-size:15px;font-weight:600">${c.name}</span>${c.company?`<span style="font-size:12px;color:#7a7464">· ${c.company}</span>`:""} ${c.orders.length>1?'<span class="badge" style="background:#f0f2e8;color:#798645;border:1px solid #798645">PAKARTOTINIS</span>':""}</div><div style="display:flex;gap:14px;flex-wrap:wrap">${c.phone?`<a href="tel:${c.phone}" style="color:#2563eb;font-size:13px;font-family:'DM Mono',monospace;text-decoration:none">📞 ${c.phone}</a>`:""} ${c.email?`<span style="font-size:12px;color:#7a7464">✉ ${c.email}</span>`:""} ${last?.date?`<span style="font-size:11px;color:#7a7464">Paskutinis: ${last.date}</span>`:""}</div></div><div style="text-align:right;margin-left:16px"><div style="font-family:'Fraunces',serif;font-size:22px;color:#798645">${c.totalValue.toLocaleString()} €</div><div class="lbl">iš viso</div></div></div></div>`;
+    }).join("")||'<div style="font-size:13px;color:#7a7464">Nerasta</div>';
+    tabContent=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px"><div style="font-family:'Fraunces',serif;font-size:22px;font-weight:300">Klientų DB</div><span style="font-size:11px;color:#7a7464;font-family:'DM Mono',monospace">${Object.keys(clientMap).length} klientų</span></div><input class="inp" style="margin-bottom:16px" placeholder="🔍 Vardas, telefonas..." value="${s.search}" oninput="setSearch(this.value)">${rows}`;
+  }
+
+  else if(s.tab==="tasks") {
+    const sections = ["HIGH","MED","LOW"].map(p=>{
+      const pt=s.tasks.filter(t=>t.priority===p); if(!pt.length) return "";
+      const col=p==="HIGH"?C.danger:p==="MED"?C.warn:C.ok;
+      const lbl=p==="HIGH"?"🔴 SKUBU":p==="MED"?"🟡 VIDUTINIS":"🟢 GALI PALAUKTI";
+      const items=pt.map(t=>`<div class="card" style="border-left:3px solid ${col};opacity:${t.done?0.38:1};cursor:pointer;padding:12px 14px" onclick="toggleTask('${t.id}')"><div style="display:flex;gap:10px;align-items:flex-start"><button style="background:none;border:2px solid ${t.done?C.ok:"#d0ccbc"};border-radius:3px;width:18px;height:18px;cursor:pointer;color:${C.ok};font-size:11px;flex-shrink:0;margin-top:1px">${t.done?"✓":""}</button><div style="flex:1"><div style="font-size:13px;text-decoration:${t.done?"line-through":"none"}">${t.text}</div><div style="display:flex;gap:8px;margin-top:5px"><span class="badge" style="background:#eceae0;color:#7a7464;border:1px solid #d0ccbc">${t.type}</span><span style="font-size:10px;color:#7a7464;font-family:'DM Mono',monospace">${t.deadline}</span></div></div></div></div>`).join("");
+      return `<div style="margin-bottom:20px"><div style="font-size:11px;color:${col};margin-bottom:9px;font-family:'DM Mono',monospace;font-weight:500">${lbl}</div>${items}</div>`;
+    }).join("");
+    tabContent=`<div style="font-family:'Fraunces',serif;font-size:22px;font-weight:300;margin-bottom:18px">Užduotys</div>${sections||'<div style="font-size:13px;color:#7a7464">Nėra užduočių</div>'}`;
+  }
+
+  else if(s.tab==="assign") {
+    const rows = active.filter(o=>o.date>=fmt(TODAY)).sort((a,b)=>a.date.localeCompare(b.date)).map(o=>{
+      const sm=STATUS_META[o.status]||STATUS_META.NEW;
+      const assigned=s.workers.filter(w=>o.workers.includes(w.id));
+      const body=`Sveiki ${assigned.map(w=>w.name).join(", ")},\n\nJūsų užduotis:\n\n📋 ${o.id} — ${o.title}\n👤 ${o.client}\n📞 ${o.phone}\n📍 ${o.address}\n🗺 ${o.mapsLink}\n\n📦 Įranga:\n${o.equipment}\n\n▲ Montavimas: ${o.date}\n▼ Demontavimas: ${o.demDate}\n💰 Suma: ${o.total.toLocaleString()} €\n${o.notes?`\n⚠ ${o.notes}\n`:""}\nPagarbiai,\nRentatent.lt`;
+      const chips=s.workers.map(w=>{const isA=o.workers.includes(w.id);return `<span class="wchip" style="background:${isA?"#f0f2e8":"#eceae0"};color:${isA?"#5a6332":"#7a7464"};border-color:${isA?"#798645":"#d0ccbc"}" onclick="assignWorker('${o.id}',${w.id})">${isA?"✓":"+"} ${w.name}</span>`;}).join("");
+      const btns=assigned.length>0?`<div style="display:flex;gap:8px;margin-top:12px"><button class="btn btn-p btn-sm" onclick="copyText(\`${body.replace(/`/g,"\\`")}\`)">📋 Kopijuoti</button><a href="mailto:${assigned.map(w=>w.email).join(",")}?subject=Užduotis: ${o.id}&body=${encodeURIComponent(body)}" class="btn btn-g btn-sm" style="text-decoration:none;display:inline-flex;align-items:center">✉ Gmail →</a></div>`:"";
+      return `<div class="card"><div style="margin-bottom:10px"><div style="display:flex;gap:7px;margin-bottom:5px"><span class="badge" style="background:${sm.bg};color:${sm.color};border:1px solid ${sm.border}">${sm.label}</span><span style="font-family:'DM Mono',monospace;font-size:10px;color:#7a7464">${o.id}</span></div><div style="font-size:15px;font-weight:600">${o.title||o.client}</div><div style="font-size:12px;color:#7a7464;margin-top:3px">📞 ${o.phone} · ▲ ${o.date}</div></div><div style="display:flex;gap:5px;flex-wrap:wrap">${chips}</div>${btns}</div>`;
+    }).join("")||'<div style="font-size:13px;color:#7a7464">Nėra artėjančių užsakymų</div>';
+    tabContent=`<div style="font-family:'Fraunces',serif;font-size:22px;font-weight:300;margin-bottom:18px">Komanda</div><div style="background:#fffbeb;border:1px solid #fcd34d;border-radius:6px;padding:11px 15px;margin-bottom:18px;font-size:12px">💡 Paskirkite darbuotoją → Gmail su visa info</div>${rows}`;
+  }
+
+  else if(s.tab==="emails") {
+    if(!s.emailPreview) {
+      const types=["OFFER","FOLLOW_UP","REMINDER","THANK_YOU"].map(t=>`<button class="btn ${s.emailType===t?"btn-p":"btn-g"} btn-sm" onclick="setEmailType('${t}')">${t}</button>`).join("");
+      const rows=active.map(o=>`<div class="row-item" onclick="previewEmail('${s.emailType}','${o.id}')"><div style="flex:1"><div style="font-size:13px;font-weight:500">${o.title||o.client} · ${o.client}</div><div style="font-size:11px;color:#7a7464;font-family:'DM Mono',monospace;margin-top:3px">${o.id} · ${o.email||"—"}</div></div><span style="color:#798645;font-size:12px">Generuoti →</span></div>`).join("");
+      tabContent=`<div style="font-family:'Fraunces',serif;font-size:22px;font-weight:300;margin-bottom:16px">Laiškų generatorius</div><div style="display:flex;gap:8px;margin-bottom:18px;flex-wrap:wrap">${types}</div><div class="lbl" style="margin-bottom:10px">Pasirinkite užsakymą</div>${rows}`;
+    } else {
+      const {html,type,order} = s.emailPreview;
+      tabContent=`<div style="display:flex;gap:8px;margin-bottom:14px;align-items:center"><button class="btn btn-g btn-sm" onclick="closeEmailPreview()">← Atgal</button><span class="badge" style="background:#f0f2e8;color:#798645;border:1px solid #798645">${type}</span><span style="font-size:12px;color:#7a7464">→ ${order?.email||"—"}</span></div><div style="background:#fff;border:1px solid #d0ccbc;border-radius:8px;overflow:hidden"><iframe srcdoc="${html.replace(/"/g,"&quot;")}" style="width:100%;height:480px;border:none" sandbox="allow-same-origin"></iframe></div><div style="display:flex;gap:8px;margin-top:12px"><button class="btn btn-p btn-sm" onclick="copyText(document.querySelector('iframe').contentDocument.documentElement.outerHTML)">📋 Kopijuoti HTML</button><a href="mailto:${order?.email}?subject=Rentatent.lt — ${order?.title||""}" class="btn btn-g btn-sm" style="text-decoration:none;display:inline-flex;align-items:center">✉ Gmail →</a></div>`;
+    }
+  }
+
+  else if(s.tab==="agent") {
+    const msgs=s.agentMsgs.map(m=>`<div style="display:flex;justify-content:${m.role==="user"?"flex-end":"flex-start"}"><div class="agent-b ${m.role==="user"?"agent-u":"agent-a"}">${m.text}</div></div>`).join("");
+    const loading=s.agentLoading?'<div style="display:flex"><div class="agent-b agent-a pulse" style="color:#7a7464">Analizuoja...</div></div>':"";
+    const chips=["Daily plan šiandien","Kas neatsakė?","Upsell pasiūlymai","Artimiausi montavimai"].map(t=>`<button class="btn btn-g btn-sm" onclick="setAgentInput('${t}')">${t}</button>`).join("");
+    tabContent=`<div style="display:flex;flex-direction:column;height:calc(100vh - 220px)"><div style="font-family:'Fraunces',serif;font-size:22px;font-weight:300;margin-bottom:12px">AI Vadybininkas</div><div style="display:flex;gap:7px;margin-bottom:14px;flex-wrap:wrap">${chips}</div><div id="chat" style="flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:10px;padding-bottom:4px">${msgs}${loading}</div><div style="display:flex;gap:8px;margin-top:12px"><textarea id="agentInp" class="inp" style="flex:1;resize:none;height:52px" placeholder='Pvz: "Jonas skambino, vestuvės liepos 12, Trakai"' onkeydown="agentKey(event)">${s.agentInput}</textarea><button class="btn btn-p" onclick="doSendAgent()" style="height:52px;padding:0 22px;font-size:16px">→</button></div></div>`;
+  }
+
+  // Modals
+  const newOrderModalHtml = s.newOrderModal ? `<div class="modal-bg" onclick="closeNewOrder()"><div class="modal" onclick="event.stopPropagation()"><div style="font-family:'Fraunces',serif;font-size:19px;font-weight:300;margin-bottom:5px">Naujas užsakymas</div><div style="font-size:12px;color:#7a7464;margin-bottom:18px">Rašyk laisvai — AI struktūrizuos ir išsaugos Sheets</div><textarea id="newOrderTxt" class="inp" rows="6" style="resize:none;margin-bottom:14px" placeholder="Pvz:\n&#34;Ingrida skambino dėl vestuvių, rugpjūčio 23, Elektrėnai,\napie 150 žm, reikia didelės palapinės ir kėdžių&#34;">${s.newOrderText}</textarea><div style="display:flex;gap:8px"><button class="btn btn-p" style="flex:1" onclick="doParseOrder()" ${s.parsing?"disabled":""}>${s.parsing?"AI analizuoja...":"⚡ Struktūrizuoti → Sheets"}</button><button class="btn btn-g" onclick="closeNewOrder()">Atšaukti</button></div></div></div>` : "";
+
+  app.innerHTML = `
+    <div class="header">
+      <div class="header-inner">
+        <div class="logo-row">
+          <div style="display:flex;align-items:baseline">
+            <span class="logo">RENTATENT</span>
+            <span class="version">AI OS · v2.0</span>
+            ${s.lastSync?`<span class="sync-badge">● ${s.lastSync.toLocaleTimeString("lt-LT",{hour:"2-digit",minute:"2-digit"})}</span>`:""}
+          </div>
+          <div class="header-actions">
+            ${urgent.length>0?`<span class="danger-badge">⚠ ${urgent.length} skubių</span>`:""}
+            <button class="btn btn-g btn-sm" onclick="doLoadData()" ${s.syncing?"disabled":""}>↻ Sync</button>
+            <button class="btn btn-p btn-sm" onclick="openNewOrder()">+ Naujas</button>
+          </div>
+        </div>
+        <div class="tabs">
+          ${tabs.map(t=>`<button class="tab${s.tab===t.id?" on":""}" onclick="setTab('${t.id}')">${t.icon} ${t.label}</button>`).join("")}
+        </div>
+      </div>
+    </div>
+    <div class="main">${tabContent}</div>
+    ${newOrderModalHtml}
+  `;
+
+  // Scroll chat
+  const chat = document.getElementById("chat");
+  if(chat) chat.scrollTop = chat.scrollHeight;
+}
+
+// ─── GLOBAL HANDLERS ─────────────────────────────────────────────────────────
+window.setTab = (t) => setState({tab:t, selOrder:null});
+window.doLoadData = () => loadData();
+window.openNewOrder = () => setState({newOrderModal:true, newOrderText:""});
+window.closeNewOrder = () => setState({newOrderModal:false});
+window.doParseOrder = () => parseOrder();
+window.toggleTask = (id) => toggleTask(id);
+window.assignWorker = (oId,wId) => assignWorker(oId,parseInt(wId));
+window.openOrder = (id) => { const o=state.orders.find(x=>x.id===id); if(o) setState({selOrder:o,tab:"orders"}); };
+window.closeOrder = () => setState({selOrder:null});
+window.selOrder = (id) => window.openOrder(id);
+window.selectDay = (d) => setState({selDay: d===state.selDay?null:d});
+window.goToDay = (d) => { const dt=new Date(d+"T12:00:00"); setState({selDay:d, viewMonth:dt.getMonth(), viewYear:dt.getFullYear()}); };
+window.prevMonth = () => state.viewMonth===0 ? setState({viewMonth:11,viewYear:state.viewYear-1}) : setState({viewMonth:state.viewMonth-1});
+window.nextMonth = () => state.viewMonth===11 ? setState({viewMonth:0,viewYear:state.viewYear+1}) : setState({viewMonth:state.viewMonth+1});
+window.setSearch = (v) => setState({search:v});
+window.setEmailType = (t) => setState({emailType:t});
+window.previewEmail = (type,id) => { const o=state.orders.find(x=>x.id===id); if(o) setState({emailPreview:{html:emailHTML(type,o),type,order:o},tab:"emails"}); };
+window.closeEmailPreview = () => setState({emailPreview:null});
+window.showFollowUp = (id) => { const o=state.orders.find(x=>x.id===id); if(o) setState({emailPreview:{html:emailHTML("FOLLOW_UP",o),type:"FOLLOW_UP",order:o},tab:"emails"}); };
+window.setAgentInput = (v) => { setState({agentInput:v}); };
+window.doSendAgent = () => sendAgent();
+window.agentKey = (e) => { if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();sendAgent();} else { const el=document.getElementById("agentInp"); if(el) setState({agentInput:el.value}); }};
+window.copyText = (t) => { navigator.clipboard?.writeText(t); alert("📋 Nukopijuota!"); };
+
+// ─── INIT ─────────────────────────────────────────────────────────────────────
+render();
+loadData();
+</script>
+</body>
+</html>

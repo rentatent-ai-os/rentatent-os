@@ -62,10 +62,34 @@ body{font-family:'Helvetica Neue',Arial,sans-serif;background:#f2f0e8;color:#1e1
 const API_URL = "https://script.google.com/macros/s/AKfycbwqMzZKBK1nEHHUmadZiaJM1gOcxT6faM9fZaswMWcMAA0igM4PCcv9707fF4qAw1hujg/exec";
 const TOKEN = "RENTATENT_GAUTAMA100";
 
-const api = async (action, params={}) => {
-  const qs = new URLSearchParams({action, token:TOKEN, ...params}).toString();
-  const r = await fetch(`${API_URL}?${qs}`);
-  return r.json();
+const api = (action, params={}) => {
+  return new Promise((resolve, reject) => {
+    const cb = "jsonp_cb_" + Date.now() + "_" + Math.random().toString(36).slice(2);
+
+    window[cb] = (data) => {
+      resolve(data);
+      delete window[cb];
+      script.remove();
+    };
+
+    const qs = new URLSearchParams({
+      action,
+      token: TOKEN,
+      callback: cb,
+      ...params
+    }).toString();
+
+    const script = document.createElement("script");
+    script.src = `${API_URL}?${qs}`;
+
+    script.onerror = () => {
+      reject(new Error("JSONP load error"));
+      delete window[cb];
+      script.remove();
+    };
+
+    document.body.appendChild(script);
+  });
 };
 const apiPost = async (action, data) => {
   const r = await fetch(API_URL, {method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({action,token:TOKEN,...data})});
